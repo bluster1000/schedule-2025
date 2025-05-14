@@ -71,7 +71,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.03</div>
+  <div class="version">v0.04</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -139,6 +139,21 @@
       }).then(res => res.json()).then(console.log);
     }
 
+    function loadFromSheet() {
+      return fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          data.forEach(entry => {
+            scheduleData[entry.date] = {
+              day: entry.day || '',
+              night: entry.night || '',
+              memo: entry.memo || ''
+            };
+          });
+        })
+        .catch(err => console.error('불러오기 오류:', err));
+    }
+
     function selectPerson(dateStr, shiftType, cell) {
       const existing = scheduleData[dateStr] || { day: '', night: '', memo: '' };
       scheduleData[dateStr] = { ...existing, [shiftType]: '' };
@@ -191,7 +206,8 @@
       renderCalendar();
     }
 
-    renderCalendar();
+    // 로딩 시 데이터 먼저 불러오고 렌더링
+    loadFromSheet().then(renderCalendar);
   </script>
 </body>
 </html>
