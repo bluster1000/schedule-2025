@@ -71,7 +71,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.02</div>
+  <div class="version">v0.03</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -88,7 +88,6 @@
     const calendar = document.getElementById('calendar');
     const scriptURL = "https://script.google.com/macros/s/AKfycbzbklBqJknK68lH2Muh-Jbt-5wtliv8Cru2_eXeg2hYQ0eZPq7DaccMyfJOdfSzjP2_Hg/exec";
 
-    // 저장된 월/연도 불러오기 또는 기본값
     let month = localStorage.getItem('selectedMonth') !== null ? parseInt(localStorage.getItem('selectedMonth')) : 4;
     let year = localStorage.getItem('selectedYear') !== null ? parseInt(localStorage.getItem('selectedYear')) : 2025;
 
@@ -104,7 +103,11 @@
 
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day);
-        const dateStr = date.toISOString().slice(0, 10);
+        const yyyy = date.getFullYear();
+        const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+        const dd = day.toString().padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
         const weekdayStr = weekdays[date.getDay()];
         const entry = scheduleData[dateStr] || { day: '', night: '', memo: '' };
 
@@ -122,7 +125,7 @@
 
     function saveToSheet(dateStr) {
       const entry = scheduleData[dateStr];
-      const weekdayStr = weekdays[(new Date(dateStr).getDay())];
+      const weekdayStr = weekdays[new Date(dateStr).getDay()];
       fetch(scriptURL, {
         method: "POST",
         body: JSON.stringify({
