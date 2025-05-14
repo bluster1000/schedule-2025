@@ -52,6 +52,8 @@
       border: 1px solid #eee;
       padding: 8px 12px;
       text-align: center;
+    }
+    td.selectable {
       cursor: pointer;
     }
     th {
@@ -87,41 +89,60 @@
       const lastDay = new Date(year, month + 1, 0);
 
       const header = document.createElement('tr');
-      header.innerHTML = '<th>날짜</th><th>주간</th><th>야간</th><th>메모</th>';
+      header.innerHTML = '<th>날짜</th><th>요일</th><th>주간</th><th>야간</th><th>메모</th>';
       calendar.appendChild(header);
 
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day);
         const dateStr = date.toISOString().slice(0, 10);
+        const weekdayStr = weekdays[date.getDay()];
         const entry = scheduleData[dateStr] || { day: '', night: '', memo: '' };
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${dateStr}</td>
-          <td onclick="selectPerson('${dateStr}', 'day')">${entry.day || '　　'}</td>
-          <td onclick="selectPerson('${dateStr}', 'night')">${entry.night || '　　'}</td>
-          <td onclick="editMemo('${dateStr}')">${entry.memo || ''}</td>
+          <td>${weekdayStr}</td>
+          <td class="selectable" onclick="selectPerson('${dateStr}', 'day', this)">${entry.day || '　　'}</td>
+          <td class="selectable" onclick="selectPerson('${dateStr}', 'night', this)">${entry.night || '　　'}</td>
+          <td class="selectable" onclick="editMemo('${dateStr}', this)">${entry.memo || ''}</td>
         `;
         calendar.appendChild(tr);
       }
     }
 
-    function selectPerson(dateStr, shiftType) {
-      const person = prompt(`${shiftType === 'day' ? '주간' : '야간'} 담당자 선택 (남편, 큰딸, 작은딸, 아들 중 하나)`, scheduleData[dateStr]?.[shiftType] || '');
-      if (members.includes(person)) {
-        scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
-        scheduleData[dateStr][shiftType] = person;
+    function selectPerson(dateStr, shiftType, cell) {
+      const select = document.createElement('select');
+      select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
+      select.value = scheduleData[dateStr]?.[shiftType] || '';
+
+      select.onchange = function() {
+        const selected = this.value;
+        if (members.includes(selected)) {
+          scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+          scheduleData[dateStr][shiftType] = selected;
+        }
         renderCalendar();
-      } else if (person !== null) {
-        alert('올바른 이름을 입력하세요: 남편, 큰딸, 작은딸, 아들');
-      }
+      };
+
+      cell.innerHTML = '';
+      cell.appendChild(select);
+      select.focus();
     }
 
-    function editMemo(dateStr) {
-      const memo = prompt('메모 입력', scheduleData[dateStr]?.memo || '');
-      scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
-      scheduleData[dateStr].memo = memo;
-      renderCalendar();
+    function editMemo(dateStr, cell) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = scheduleData[dateStr]?.memo || '';
+
+      input.onblur = function() {
+        scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+        scheduleData[dateStr].memo = input.value;
+        renderCalendar();
+      };
+
+      cell.innerHTML = '';
+      cell.appendChild(input);
+      input.focus();
     }
 
     function changeMonth(offset) {
