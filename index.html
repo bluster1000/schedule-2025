@@ -128,7 +128,9 @@
     }
 
     function selectPerson(dateStr, shiftType, cell) {
-      scheduleData[dateStr] = { day: '', night: '', memo: scheduleData[dateStr]?.memo || '' };
+      scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+      scheduleData[dateStr][shiftType] = '';
+
       const select = document.createElement('select');
       select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
 
