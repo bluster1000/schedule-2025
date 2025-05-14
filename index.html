@@ -136,7 +136,9 @@
           memo: entry.memo
         }),
         headers: { "Content-Type": "application/json" }
-      }).then(res => res.json()).then(console.log);
+      }).then(res => res.text())
+  .then(txt => console.log('서버 응답:', txt))
+  .catch(err => console.error('저장 실패:', err));
     }
 
     function loadFromSheet() {
