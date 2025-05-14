@@ -71,7 +71,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.06</div>
+  <div class="version">v0.07</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -138,7 +138,10 @@
         headers: { "Content-Type": "application/json" }
       }).then(res => res.text())
   .then(txt => console.log('서버 응답:', txt))
-  .catch(err => console.error('저장 실패:', err));
+  .catch(err => {
+  console.error('저장 실패:', err);
+  alert('Google 서버와 통신이 차단되었습니다.\n권한 또는 URL 설정을 다시 확인해주세요.');
+});
     }
 
     function loadFromSheet() {
