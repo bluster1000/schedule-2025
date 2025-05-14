@@ -81,6 +81,7 @@
     const members = ['남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
+    const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec"; // 여기에 Apps Script 배포 URL 입력
 
     function renderCalendar() {
       calendar.innerHTML = '';
@@ -110,6 +111,22 @@
       }
     }
 
+    function saveToSheet(dateStr) {
+      const entry = scheduleData[dateStr];
+      const weekdayStr = weekdays[new Date(dateStr).getDay()];
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify({
+          date: dateStr,
+          weekday: weekdayStr,
+          day: entry.day,
+          night: entry.night,
+          memo: entry.memo
+        }),
+        headers: { "Content-Type": "application/json" }
+      }).then(res => res.json()).then(console.log);
+    }
+
     function selectPerson(dateStr, shiftType, cell) {
       const select = document.createElement('select');
       select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
@@ -120,6 +137,7 @@
         if (members.includes(selected)) {
           scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
           scheduleData[dateStr][shiftType] = selected;
+          saveToSheet(dateStr);
         }
         renderCalendar();
       };
@@ -137,6 +155,7 @@
       input.onblur = function() {
         scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
         scheduleData[dateStr].memo = input.value;
+        saveToSheet(dateStr);
         renderCalendar();
       };
 
