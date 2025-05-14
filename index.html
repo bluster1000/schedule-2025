@@ -15,6 +15,13 @@
     h1 {
       text-align: center;
       color: #222;
+      margin-bottom: 4px;
+    }
+    .version {
+      text-align: center;
+      font-size: 0.8em;
+      color: #aaa;
+      margin-bottom: 10px;
     }
     #controls {
       display: flex;
@@ -64,6 +71,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
+  <div class="version">v0.01</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -81,7 +89,7 @@
     const members = ['남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzbklBqJknK68lH2Muh-Jbt-5wtliv8Cru2_eXeg2hYQ0eZPq7DaccMyfJOdfSzjP2_Hg/exec"; // 여기에 Apps Script 배포 URL 입력
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzbklBqJknK68lH2Muh-Jbt-5wtliv8Cru2_eXeg2hYQ0eZPq7DaccMyfJOdfSzjP2_Hg/exec";
 
     function renderCalendar() {
       calendar.innerHTML = '';
@@ -128,8 +136,8 @@
     }
 
     function selectPerson(dateStr, shiftType, cell) {
-      scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
-      scheduleData[dateStr][shiftType] = '';
+      const existing = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+      scheduleData[dateStr] = { ...existing, [shiftType]: '' };
 
       const select = document.createElement('select');
       select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
