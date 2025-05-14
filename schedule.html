@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>2025 일정표</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #222;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+    #controls button {
+      padding: 8px 16px;
+      background-color: #ffcd00;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #controls button:hover {
+      background-color: #ffdb4d;
+    }
+    #controls h2 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #eee;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f1f1;
+      color: #444;
+    }
+    #entry-form {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #entry-form input {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #entry-form button {
+      padding: 6px 14px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #entry-form button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>2025 일정표</h1>
+  <div id="controls">
+    <button onclick="changeMonth(-1)">&lt; 이전월</button>
+    <h2 id="month-label">5월</h2>
+    <button onclick="changeMonth(1)">다음월 &gt;</button>
+  </div>
+
+  <table id="calendar"></table>
+
+  <div id="entry-form">
+    <input type="text" id="dayInput" placeholder="날짜 YYYY-MM-DD">
+    <input type="text" id="dayShift" maxlength="5" placeholder="주간">
+    <input type="text" id="nightShift" maxlength="5" placeholder="야간">
+    <input type="text" id="memo" placeholder="메모">
+    <button onclick="saveSchedule()">저장</button>
+  </div>
+
+  <script>
+    const scheduleData = {};
+    let year = 2025;
+    let month = 4; // 0-indexed, May
+
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const monthLabel = document.getElementById('month-label');
+    const calendar = document.getElementById('calendar');
+
+    function renderCalendar() {
+      calendar.innerHTML = '';
+      monthLabel.textContent = (month + 1) + '월';
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      const header = document.createElement('tr');
+      header.innerHTML = '<th>날짜</th><th>요일</th><th>주간</th><th>야간</th><th>메모</th>';
+      calendar.appendChild(header);
+
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dateStr = date.toISOString().slice(0, 10);
+        const weekday = weekdays[date.getDay()];
+        const entry = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${dateStr}</td><td>${weekday}</td><td>${pad(entry.day)}</td><td>${pad(entry.night)}</td><td>${entry.memo}</td>`;
+        calendar.appendChild(tr);
+      }
+    }
+
+    function pad(text) {
+      return (text || '').padEnd(5, ' ');
+    }
+
+    function saveSchedule() {
+      const date = document.getElementById('dayInput').value;
+      const day = document.getElementById('dayShift').value.slice(0, 5);
+      const night = document.getElementById('nightShift').value.slice(0, 5);
+      const memo = document.getElementById('memo').value;
+
+      if (!date.match(/^2025\-\d{2}\-\d{2}$/)) {
+        alert('날짜 형식은 YYYY-MM-DD 입니다.');
+        return;
+      }
+      scheduleData[date] = { day, night, memo };
+      renderCalendar();
+    }
+
+    function changeMonth(offset) {
+      month += offset;
+      if (month < 0) month = 11;
+      if (month > 11) month = 0;
+      renderCalendar();
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
