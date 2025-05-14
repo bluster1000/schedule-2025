@@ -77,7 +77,7 @@
     let year = 2025;
     let month = 4; // 0-indexed, May
 
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     const members = ['남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
@@ -96,7 +96,7 @@
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day);
         const dateStr = date.toISOString().slice(0, 10);
-        const weekdayStr = weekdays[date.getDay()];
+        const weekdayStr = weekdays[(date.getDay() + 6) % 7];
         const entry = scheduleData[dateStr] || { day: '', night: '', memo: '' };
 
         const tr = document.createElement('tr');
@@ -113,7 +113,7 @@
 
     function saveToSheet(dateStr) {
       const entry = scheduleData[dateStr];
-      const weekdayStr = weekdays[new Date(dateStr).getDay()];
+      const weekdayStr = weekdays[(new Date(dateStr).getDay() + 6) % 7];
       fetch(scriptURL, {
         method: "POST",
         body: JSON.stringify({
@@ -128,17 +128,16 @@
     }
 
     function selectPerson(dateStr, shiftType, cell) {
+      scheduleData[dateStr] = { day: '', night: '', memo: scheduleData[dateStr]?.memo || '' };
       const select = document.createElement('select');
       select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
-      select.value = scheduleData[dateStr]?.[shiftType] || '';
 
       select.onchange = function() {
         const selected = this.value;
         if (members.includes(selected)) {
-          scheduleData[dateStr] = scheduleData[dateStr] || { day: '', night: '', memo: '' };
           scheduleData[dateStr][shiftType] = selected;
-          saveToSheet(dateStr);
         }
+        saveToSheet(dateStr);
         renderCalendar();
       };
 
