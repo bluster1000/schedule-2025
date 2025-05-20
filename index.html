@@ -68,7 +68,6 @@
       color: #444;
     }
 
-    /* 모달 스타일 */
     #person-modal {
       display: none;
       position: fixed;
@@ -104,7 +103,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.10</div>
+  <div class="version">v0.11</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -113,7 +112,6 @@
 
   <table id="calendar"></table>
 
-  <!-- 담당자 선택 모달 -->
   <div id="person-modal">
     <div id="person-modal-content">
       <h3>담당자 선택</h3>
@@ -128,7 +126,7 @@
     const members = ['남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz31Jlama80-IPmJGkps-3-MuwzsugTOvROc0pssa5uSpf-1UDDZaZibtD4DSKNUNNkmg/exec";
+    const scriptURL = "여기에_Apps_Script_URL_붙여넣기"; // 예: https://script.google.com/macros/s/AKfycb.../exec
 
     let month = localStorage.getItem('selectedMonth') !== null ? parseInt(localStorage.getItem('selectedMonth')) : 4;
     let year = localStorage.getItem('selectedYear') !== null ? parseInt(localStorage.getItem('selectedYear')) : 2025;
@@ -168,22 +166,25 @@
     function saveToSheet(dateStr) {
       const entry = scheduleData[dateStr];
       const weekdayStr = weekdays[new Date(dateStr).getDay()];
+      const params = new URLSearchParams({
+        date: dateStr,
+        weekday: weekdayStr,
+        day: entry.day,
+        night: entry.night,
+        memo: entry.memo
+      });
+
       fetch(scriptURL, {
         method: "POST",
-        body: JSON.stringify({
-          date: dateStr,
-          weekday: weekdayStr,
-          day: entry.day,
-          night: entry.night,
-          memo: entry.memo
-        }),
-        headers: { "Content-Type": "application/json" }
-      }).then(res => res.text())
-        .then(txt => console.log('서버 응답:', txt))
-        .catch(err => {
-          console.error('저장 실패:', err);
-          alert('Google 서버와 통신이 차단되었습니다.\n권한 또는 URL 설정을 다시 확인해주세요.');
-        });
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params
+      })
+      .then(res => res.text())
+      .then(txt => console.log('서버 응답:', txt))
+      .catch(err => {
+        console.error('저장 실패:', err);
+        alert('Google 서버와 통신이 차단되었습니다.\n권한 또는 URL 설정을 다시 확인해주세요.');
+      });
     }
 
     function loadFromSheet() {
