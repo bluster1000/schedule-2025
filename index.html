@@ -103,7 +103,7 @@
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.14</div>
+  <div class="version">v0.15</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -126,9 +126,6 @@
     const members = ['남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
-    //const scriptURL = "https://script.google.com/macros/s/AKfycbz31Jlama80-IPmJGkps-3-MuwzsugTOvROc0pssa5uSpf-1UDDZaZibtD4DSKNUNNkmg/exec"; // 예: https://script.google.com/macros/s/AKfycb.../exec
-    //const scriptURL = "https://script.google.com/macros/s/AKfycbz31Jlama80-IPmJGkps-3-MuwzsugTOvROc0pssa5uSpf-1UDDZaZibtD4DSKNUNNkmg/exec";
-    //const scriptURL = "https://script.google.com/macros/s/AKfycbz31Jlama80-IPmJGkps-3-MuwzsugTOvROc0pssa5uSpf-1UDDZaZibtD4DSKNUNNkmg/exec";
     const scriptURL = "https://script.google.com/macros/s/AKfycbyUZL909oFy8dVNv_OCiPcs3yPYyg7y_fzY374aWb-OFpvlTLln2xbtI3MynRyn6Ole3A/exec";
 
     let month = localStorage.getItem('selectedMonth') !== null ? parseInt(localStorage.getItem('selectedMonth')) : 4;
@@ -194,6 +191,7 @@
       return fetch(scriptURL)
         .then(res => res.json())
         .then(data => {
+          console.log('불러온 데이터:', data);
           data.forEach(entry => {
             scheduleData[entry.date] = {
               day: entry.day || '',
@@ -261,6 +259,7 @@
       renderCalendar();
     }
 
+    // ✅ fetch 완료 후 렌더링 (해결법 1)
     loadFromSheet().then(renderCalendar);
   </script>
 </body>
