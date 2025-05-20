@@ -29,6 +29,7 @@
       align-items: center;
       margin-bottom: 20px;
       gap: 20px;
+      flex-wrap: wrap;
     }
     #controls button {
       padding: 8px 16px;
@@ -67,7 +68,6 @@
       background-color: #f1f1f1;
       color: #444;
     }
-
     #person-modal {
       display: none;
       position: fixed;
@@ -106,8 +106,9 @@
   <div class="version">v0.16</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
-    <h2 id="month-label">5월</h2>
+    <h2 id="month-label">2025년 6월</h2>
     <button onclick="changeMonth(1)">다음월 &gt;</button>
+    <button onclick="resetAllData()" style="background-color:#e74c3c; color:white;">전체 초기화</button>
   </div>
 
   <table id="calendar"></table>
@@ -123,10 +124,10 @@
   <script>
     const scheduleData = {};
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    const members = ['남편', '큰딸', '작은딸', '아들'];
+    const members = ['없음', '남편', '큰딸', '작은딸', '아들'];
     const monthLabel = document.getElementById('month-label');
     const calendar = document.getElementById('calendar');
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzYjo03ZpE4OY5NqaDspcJkhfK0ieJ8lXY60_taAs8k7gOpMwA1r16so8g7MP5IzSuZgg/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzJzDGy9RM_R64JUhiH_B8eEz1HwbS3q5fuNV0vuFyBvUbAnzbkerz54W2VQ08Y-zME9A/exec";
 
     let month = localStorage.getItem('selectedMonth') !== null ? parseInt(localStorage.getItem('selectedMonth')) : 4;
     let year = localStorage.getItem('selectedYear') !== null ? parseInt(localStorage.getItem('selectedYear')) : 2025;
@@ -191,7 +192,6 @@
       return fetch(scriptURL)
         .then(res => res.json())
         .then(data => {
-          console.log('불러온 데이터:', data);
           data.forEach(entry => {
             scheduleData[entry.date] = {
               day: entry.day || '',
@@ -213,7 +213,10 @@
         btn.textContent = member;
         btn.onclick = () => {
           const existing = scheduleData[dateStr] || { day: '', night: '', memo: '' };
-          scheduleData[dateStr] = { ...existing, [shiftType]: member };
+          scheduleData[dateStr] = {
+            ...existing,
+            [shiftType]: member === '없음' ? '' : member
+          };
           saveToSheet(dateStr);
           closePersonModal();
           renderCalendar();
@@ -259,7 +262,24 @@
       renderCalendar();
     }
 
-    // ✅ fetch 완료 후 렌더링 (해결법 1)
+    function resetAllData() {
+      if (!confirm("정말로 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+
+      fetch(scriptURL + "?resetAll=true", {
+        method: "POST"
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert("초기화 완료되었습니다.");
+        Object.keys(scheduleData).forEach(k => delete scheduleData[k]);
+        renderCalendar();
+      })
+      .catch(err => {
+        console.error('초기화 실패:', err);
+        alert("초기화 중 오류 발생");
+      });
+    }
+
     loadFromSheet().then(renderCalendar);
   </script>
 </body>
