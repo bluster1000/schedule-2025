@@ -67,11 +67,44 @@
       background-color: #f1f1f1;
       color: #444;
     }
+
+    /* 모달 스타일 */
+    #person-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #person-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      width: 90%;
+      max-width: 300px;
+    }
+    #person-options button {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #person-options button:hover {
+      background-color: #e0e0e0;
+    }
   </style>
 </head>
 <body>
   <h1>2025 일정표</h1>
-  <div class="version">v0.08</div>
+  <div class="version">v0.09</div>
   <div id="controls">
     <button onclick="changeMonth(-1)">&lt; 이전월</button>
     <h2 id="month-label">5월</h2>
@@ -79,6 +112,15 @@
   </div>
 
   <table id="calendar"></table>
+
+  <!-- 담당자 선택 모달 -->
+  <div id="person-modal">
+    <div id="person-modal-content">
+      <h3>담당자 선택</h3>
+      <div id="person-options"></div>
+      <button onclick="closePersonModal()">닫기</button>
+    </div>
+  </div>
 
   <script>
     const scheduleData = {};
@@ -90,6 +132,7 @@
 
     let month = localStorage.getItem('selectedMonth') !== null ? parseInt(localStorage.getItem('selectedMonth')) : 4;
     let year = localStorage.getItem('selectedYear') !== null ? parseInt(localStorage.getItem('selectedYear')) : 2025;
+    let currentSelect = { dateStr: '', shiftType: '' };
 
     function renderCalendar() {
       calendar.innerHTML = '';
@@ -107,7 +150,6 @@
         const mm = (date.getMonth() + 1).toString().padStart(2, '0');
         const dd = day.toString().padStart(2, '0');
         const dateStr = `${yyyy}-${mm}-${dd}`;
-
         const weekdayStr = weekdays[date.getDay()];
         const entry = scheduleData[dateStr] || { day: '', night: '', memo: '' };
 
@@ -115,8 +157,8 @@
         tr.innerHTML = `
           <td>${dateStr}</td>
           <td>${weekdayStr}</td>
-          <td class="selectable" onclick="selectPerson('${dateStr}', 'day', this)">${entry.day || '　　'}</td>
-          <td class="selectable" onclick="selectPerson('${dateStr}', 'night', this)">${entry.night || '　　'}</td>
+          <td class="selectable" onclick="selectPerson('${dateStr}', 'day')">${entry.day || '　　'}</td>
+          <td class="selectable" onclick="selectPerson('${dateStr}', 'night')">${entry.night || '　　'}</td>
           <td class="selectable" onclick="editMemo('${dateStr}', this)">${entry.memo || ''}</td>
         `;
         calendar.appendChild(tr);
@@ -137,11 +179,11 @@
         }),
         headers: { "Content-Type": "application/json" }
       }).then(res => res.text())
-  .then(txt => console.log('서버 응답:', txt))
-  .catch(err => {
-  console.error('저장 실패:', err);
-  alert('Google 서버와 통신이 차단되었습니다.\n권한 또는 URL 설정을 다시 확인해주세요.');
-});
+        .then(txt => console.log('서버 응답:', txt))
+        .catch(err => {
+          console.error('저장 실패:', err);
+          alert('Google 서버와 통신이 차단되었습니다.\n권한 또는 URL 설정을 다시 확인해주세요.');
+        });
     }
 
     function loadFromSheet() {
@@ -159,25 +201,29 @@
         .catch(err => console.error('불러오기 오류:', err));
     }
 
-    function selectPerson(dateStr, shiftType, cell) {
-      const existing = scheduleData[dateStr] || { day: '', night: '', memo: '' };
-      scheduleData[dateStr] = { ...existing, [shiftType]: '' };
+    function selectPerson(dateStr, shiftType) {
+      currentSelect = { dateStr, shiftType };
+      const optionsDiv = document.getElementById('person-options');
+      optionsDiv.innerHTML = '';
 
-      const select = document.createElement('select');
-      select.innerHTML = '<option value="">선택</option>' + members.map(m => `<option value="${m}">${m}</option>`).join('');
+      members.forEach(member => {
+        const btn = document.createElement('button');
+        btn.textContent = member;
+        btn.onclick = () => {
+          const existing = scheduleData[dateStr] || { day: '', night: '', memo: '' };
+          scheduleData[dateStr] = { ...existing, [shiftType]: member };
+          saveToSheet(dateStr);
+          closePersonModal();
+          renderCalendar();
+        };
+        optionsDiv.appendChild(btn);
+      });
 
-      select.onchange = function () {
-        const selected = this.value;
-        if (members.includes(selected)) {
-          scheduleData[dateStr][shiftType] = selected;
-        }
-        saveToSheet(dateStr);
-        renderCalendar();
-      };
+      document.getElementById('person-modal').style.display = 'flex';
+    }
 
-      cell.innerHTML = '';
-      cell.appendChild(select);
-      select.focus();
+    function closePersonModal() {
+      document.getElementById('person-modal').style.display = 'none';
     }
 
     function editMemo(dateStr, cell) {
@@ -211,7 +257,6 @@
       renderCalendar();
     }
 
-    // 로딩 시 데이터 먼저 불러오고 렌더링
     loadFromSheet().then(renderCalendar);
   </script>
 </body>
